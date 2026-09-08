@@ -65,19 +65,6 @@ npm run test
 
 ---
 
-## Deploy to Vercel
-
-1. Push to GitHub
-2. Import repo into Vercel
-3. Add environment variables in the Vercel dashboard:
-   - `DATABASE_URL` — your Supabase/Neon connection string
-   - `AUTH_SECRET` — 32+ character random string (`openssl rand -base64 32`)
-   - `NEXT_PUBLIC_BASE_URL` — your Vercel URL (for QR codes)
-   - `CRON_SECRET` — any random string
-4. Deploy
-5. After deploy: `npx prisma db push` then `npm run seed` (or run from Vercel console)
-
-The `vercel.json` configures a cron job that calls `/api/cron/expire-permits` every 5 minutes to auto-expire permits past their end time.
 
 ---
 
