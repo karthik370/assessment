@@ -7,6 +7,7 @@ import AuditLogTimeline from "@/components/AuditLogTimeline";
 import ApprovalTrail from "@/components/ApprovalTrail";
 import TypeSpecificFields from "@/components/TypeSpecificFields";
 import CountdownTimer from "@/components/CountdownTimer";
+import ExtensionPanel from "@/components/ExtensionPanel";
 import { getAvailableActions } from "@/lib/permissions";
 import {
   MapPin, Calendar, User, Users, FileText, Shield,
@@ -240,22 +241,11 @@ export default async function PermitDetailPage({
 
             {/* Extension requests */}
             {permit.extensionRequests.length > 0 && (
-              <div className="card p-4">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Extension Requests</h3>
-                {permit.extensionRequests.map((ext) => (
-                  <div key={ext.id} className="p-3 rounded-lg bg-slate-800/50 text-xs mb-2 last:mb-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold text-slate-300">+{ext.requestedHours}h extension</span>
-                      <span className={
-                        ext.status === "APPROVED" ? "text-green-400" :
-                        ext.status === "REJECTED" ? "text-red-400" : "text-blue-400"
-                      }>{ext.status}</span>
-                    </div>
-                    <p className="text-slate-500">{ext.reason}</p>
-                    {ext.approver && <p className="text-slate-600 mt-1">Decided by: {ext.approver.name}</p>}
-                  </div>
-                ))}
-              </div>
+              <ExtensionPanel
+                permitId={permit.id}
+                extensions={permit.extensionRequests as any}
+                userRole={userRole}
+              />
             )}
 
             {/* Action buttons */}
