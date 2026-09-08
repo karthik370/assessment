@@ -1,0 +1,315 @@
+// Permit to Work CMMS — Prisma Schema
+// One permits table + per-type satellite tables. Adding type #5 = one new table, nothing else.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  REQUESTER
+  AREA_OWNER
+  SAFETY_OFFICER
+  ADMIN
+}
+
+enum PermitType {
+  HOT_WORK
+  CONFINED_SPACE
+  WORKING_AT_HEIGHT
+  ELECTRICAL_LOTO
+}
+
+enum PermitStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  CLOSED
+  CLOSED_VERIFIED
+  REJECTED
+  CANCELLED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ExtensionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  ownedAreas    AreaOwner[]
+  permits       Permit[]         @relation("RequesterPermits")
+  approvals     PermitApproval[]
+  auditLogs     AuditLog[]
+  extensionApprovals ExtensionRequest[] @relation("ExtensionApprover")
+  extensionRequests  ExtensionRequest[] @relation("ExtensionRequester")
+
+  @@map("users")
+}
+
+model Plant {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+
+  areas   Area[]
+  permits Permit[]
+
+  @@map("plants")
+}
+
+model Area {
+  id        String   @id @default(cuid())
+  name      String
+  plantId   String   @map("plant_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  plant     Plant       @relation(fields: [plantId], references: [id])
+  equipment Equipment[]
+  owners    AreaOwner[]
+  permits   Permit[]
+
+  @@map("areas")
+}
+
+// Many-to-many: area owners own specific areas
+model AreaOwner {
+  areaId String @map("area_id")
+  userId String @map("user_id")
+
+  area Area @relation(fields: [areaId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([areaId, userId])
+  @@map("area_owners")
+}
+
+model Equipment {
+  id          String   @id @default(cuid())
+  tag         String   @unique // e.g. CR-P-001
+  name        String
+  description String?
+  areaId      String   @map("area_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  area    Area     @relation(fields: [areaId], references: [id])
+  permits Permit[]
+
+  @@map("equipment")
+}
+
+// Core permit — shared by all types
+model Permit {
+  id           String       @id @default(cuid())
+  permitNumber String       @unique @map("permit_number") // PTW-2024-0001
+  type         PermitType
+  status       PermitStatus @default(DRAFT)
+
+  // Who's doing the work
+  requesterId    String @map("requester_id")
+  contractorTeam String @map("contractor_team")
+  workDescription String @map("work_description")
+
+  // Where
+  plantId       String  @map("plant_id")
+  areaId        String  @map("area_id")
+  equipmentId   String? @map("equipment_id")
+  locationDetail String  @map("location_detail") // free text, "north side of pipe rack 7"
+
+  // When
+  plannedStart DateTime @map("planned_start")
+  plannedEnd   DateTime @map("planned_end")
+  expiresAt    DateTime? @map("expires_at") // set when APPROVED, same as plannedEnd
+
+  // Safety details (stored as JSON arrays for flexibility)
+  hazardsIdentified String[] @map("hazards_identified")
+  ppeRequired       String[] @map("ppe_required")
+  precautionsDone   Boolean  @default(false) @map("precautions_done")
+
+  // Lifecycle timestamps
+  submittedAt    DateTime? @map("submitted_at")
+  activatedAt    DateTime? @map("activated_at")
+  suspendedAt    DateTime? @map("suspended_at")
+  closedAt       DateTime? @map("closed_at")
+  verifiedAt     DateTime? @map("verified_at")
+  cancelledAt    DateTime? @map("cancelled_at")
+  rejectedAt     DateTime? @map("rejected_at")
+
+  // Closure
+  closureNotes  String? @map("closure_notes")
+  verifiedNotes String? @map("verified_notes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  requester   User       @relation("RequesterPermits", fields: [requesterId], references: [id])
+  plant       Plant      @relation(fields: [plantId], references: [id])
+  area        Area       @relation(fields: [areaId], references: [id])
+  equipment   Equipment? @relation(fields: [equipmentId], references: [id])
+
+  approvals        PermitApproval[]
+  auditLogs        AuditLog[]
+  extensionRequests ExtensionRequest[]
+
+  // Type-specific detail tables (max one of these will be populated)
+  hotWorkDetails       HotWorkDetail?
+  confinedSpaceDetails ConfinedSpaceDetail?
+  heightWorkDetails    HeightWorkDetail?
+  electricalLotoDetails ElectricalLotoDetail?
+
+  @@map("permits")
+}
+
+// Hot Work specific fields
+model HotWorkDetail {
+  id       String @id @default(cuid())
+  permitId String @unique @map("permit_id")
+
+  hotWorkType       String  @map("hot_work_type") // welding / grinding / cutting / soldering
+  fireWatchAssigned String  @map("fire_watch_assigned")
+  extinguisherType  String  @map("extinguisher_type")
+  combustiblesClearedM Float @map("combustibles_cleared_m") // radius in metres
+  gasTestLel        Float   @map("gas_test_lel")   // % LEL reading
+  gasTestO2         Float   @map("gas_test_o2")    // % O2 reading
+  gasTestTime       DateTime @map("gas_test_time")
+  gasTestedBy       String  @map("gas_tested_by")
+
+  permit Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+
+  @@map("hot_work_details")
+}
+
+// Confined Space specific fields
+model ConfinedSpaceDetail {
+  id       String @id @default(cuid())
+  permitId String @unique @map("permit_id")
+
+  spaceId          String  @map("space_id")
+  entryPoint       String  @map("entry_point")
+  atmTestO2        Float   @map("atm_test_o2")
+  atmTestLel       Float   @map("atm_test_lel")
+  atmTestH2s       Float   @map("atm_test_h2s")   // ppm
+  atmTestCo        Float   @map("atm_test_co")    // ppm
+  atmTestTime      DateTime @map("atm_test_time")
+  atmTestedBy      String  @map("atm_tested_by")
+  standbyAttendant String  @map("standby_attendant")
+  rescuePlan       String  @map("rescue_plan")
+  ventilationMethod String @map("ventilation_method")
+  entryExitLog     Json    @default("[]") @map("entry_exit_log") // [{name, entryTime, exitTime}]
+
+  permit Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+
+  @@map("confined_space_details")
+}
+
+// Working at Height specific fields
+model HeightWorkDetail {
+  id       String @id @default(cuid())
+  permitId String @unique @map("permit_id")
+
+  heightMetres    Float   @map("height_metres")
+  accessMethod    String  @map("access_method") // scaffold / ladder / MEWP / rope
+  fallArrestEquip String  @map("fall_arrest_equip")
+  anchorChecked   Boolean @map("anchor_checked")
+  barricadingBelow Boolean @map("barricading_below")
+
+  permit Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+
+  @@map("height_work_details")
+}
+
+// Electrical / LOTO specific fields
+model ElectricalLotoDetail {
+  id       String @id @default(cuid())
+  permitId String @unique @map("permit_id")
+
+  equipmentTag    String @map("equipment_tag")
+  voltageLevel    String @map("voltage_level")
+  isolationPoints Json   @map("isolation_points") // [{point, isolated: bool}]
+  lockNumbers     String[] @map("lock_numbers")
+  tagNumbers      String[] @map("tag_numbers")
+  earthingApplied Boolean @map("earthing_applied")
+  testedDeadBy    String  @map("tested_dead_by")
+
+  permit Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+
+  @@map("electrical_loto_details")
+}
+
+// Approval records — one per approver per permit
+model PermitApproval {
+  id         String         @id @default(cuid())
+  permitId   String         @map("permit_id")
+  approverId String         @map("approver_id")
+  role       Role           // role they approved as
+  status     ApprovalStatus @default(PENDING)
+  comment    String?
+  decidedAt  DateTime?      @map("decided_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  permit   Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+  approver User   @relation(fields: [approverId], references: [id])
+
+  @@map("permit_approvals")
+}
+
+// Immutable audit log — no updates, no deletes, ever
+model AuditLog {
+  id         String   @id @default(cuid())
+  permitId   String   @map("permit_id")
+  actorId    String   @map("actor_id")
+  action     String   // e.g. "SUBMITTED", "APPROVED", "STATUS_CHANGED", "FIELD_UPDATED"
+  fromStatus PermitStatus? @map("from_status")
+  toStatus   PermitStatus? @map("to_status")
+  fieldName  String?  @map("field_name")
+  oldValue   String?  @map("old_value")
+  newValue   String?  @map("new_value")
+  comment    String?
+  timestamp  DateTime @default(now())
+
+  permit Permit @relation(fields: [permitId], references: [id], onDelete: Cascade)
+  actor  User   @relation(fields: [actorId], references: [id])
+
+  @@map("audit_logs")
+}
+
+// Extension requests for active permits
+model ExtensionRequest {
+  id             String          @id @default(cuid())
+  permitId       String          @map("permit_id")
+  requesterId    String          @map("requester_id")
+  requestedHours Int             @map("requested_hours")
+  reason         String
+  approverId     String?         @map("approver_id")
+  status         ExtensionStatus @default(PENDING)
+  approvedAt     DateTime?       @map("approved_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  permit    Permit  @relation(fields: [permitId], references: [id], onDelete: Cascade)
+  requester User    @relation("ExtensionRequester", fields: [requesterId], references: [id])
+  approver  User?   @relation("ExtensionApprover", fields: [approverId], references: [id])
+
+  @@map("extension_requests")
+}
