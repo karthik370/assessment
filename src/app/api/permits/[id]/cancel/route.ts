@@ -6,14 +6,14 @@ import { transition, PermitTransitionError } from "@/lib/permit-state-machine";
 // POST /api/permits/[id]/cancel
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
 
   const { reason } = await req.json().catch(() => ({ reason: "" }));
 
-  const permit = await prisma.permit.findUnique({ where: { id: params.id } });
+  const permit = await prisma.permit.findUnique({ where: { id: (await params).id } });
   if (!permit) return notFound("Permit not found.");
 
   try {

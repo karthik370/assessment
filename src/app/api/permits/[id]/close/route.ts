@@ -11,7 +11,7 @@ const closeSchema = z.object({
 // POST /api/permits/[id]/close
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
@@ -28,7 +28,7 @@ export async function POST(
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
 
-  const permit = await prisma.permit.findUnique({ where: { id: params.id } });
+  const permit = await prisma.permit.findUnique({ where: { id: (await params).id } });
   if (!permit) return notFound("Permit not found.");
 
   try {

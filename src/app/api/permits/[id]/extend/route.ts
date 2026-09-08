@@ -14,7 +14,7 @@ const extendSchema = z.object({
 // POST /api/permits/[id]/extend — requester requests extension
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
@@ -32,7 +32,7 @@ export async function POST(
   }
 
   const permit = await prisma.permit.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
     include: { extensionRequests: true },
   });
   if (!permit) return notFound("Permit not found.");
@@ -103,7 +103,7 @@ export async function POST(
 // PATCH /api/permits/[id]/extend — safety officer approves or rejects extension
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
@@ -129,7 +129,7 @@ export async function PATCH(
     include: { permit: true },
   });
 
-  if (!extension || extension.permitId !== params.id) {
+  if (!extension || extension.permitId !== (await params).id) {
     return notFound("Extension request not found.");
   }
 

@@ -6,7 +6,7 @@ import { transition, canActorApprove, PermitTransitionError } from "@/lib/permit
 // POST /api/permits/[id]/approve
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
@@ -14,7 +14,7 @@ export async function POST(
   const { comment } = await req.json().catch(() => ({ comment: undefined }));
 
   const permit = await prisma.permit.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
     include: {
       approvals: true,
       requester: { select: { id: true, name: true } },

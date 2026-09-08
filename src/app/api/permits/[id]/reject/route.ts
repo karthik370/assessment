@@ -11,7 +11,7 @@ const rejectSchema = z.object({
 // POST /api/permits/[id]/reject
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
@@ -32,7 +32,7 @@ export async function POST(
   }
 
   const permit = await prisma.permit.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
     include: { approvals: true },
   });
   if (!permit) return notFound("Permit not found.");

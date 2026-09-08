@@ -30,7 +30,7 @@ const TYPE_LABELS: Record<string, string> = {
 export default async function PermitDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
@@ -40,7 +40,7 @@ export default async function PermitDetailPage({
   const ownedAreaIds = ((session.user as any).ownedAreaIds ?? []) as string[];
 
   const permit = await prisma.permit.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
     include: {
       requester: { select: { id: true, name: true, email: true, role: true } },
       plant: true,

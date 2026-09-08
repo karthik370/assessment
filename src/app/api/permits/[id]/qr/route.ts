@@ -6,13 +6,13 @@ import QRCode from "qrcode";
 // GET /api/permits/[id]/qr — returns a QR code PNG pointing to the permit detail page
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
 
   const permit = await prisma.permit.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
     select: { id: true, permitNumber: true },
   });
 

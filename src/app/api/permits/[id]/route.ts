@@ -11,13 +11,13 @@ import {
 // GET /api/permits/[id] — full permit detail
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
 
   const permit = await prisma.permit.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
     include: {
       requester: { select: { id: true, name: true, email: true, role: true } },
       plant: true,
@@ -57,13 +57,13 @@ export async function GET(
 // PATCH /api/permits/[id] — update draft permit fields
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = await getSessionUser();
   if (!user) return unauthorized();
 
   const permit = await prisma.permit.findUnique({
-    where: { id: params.id },
+    where: { id: (await params).id },
   });
   if (!permit) return notFound("Permit not found.");
 
@@ -109,7 +109,7 @@ export async function PATCH(
 
   try {
     const updated = await prisma.permit.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: updateData,
     });
     return NextResponse.json({ permit: updated });
