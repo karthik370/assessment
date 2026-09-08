@@ -142,13 +142,6 @@ Every state change and approval is logged to the `audit_logs` table — immutabl
 
 ---
 
-## What I Knowingly Left Broken / Incomplete
-
-- The Admin panel at `/admin` shows only a user list — user creation UI and area assignment UI are not fully built (the API routes exist)
-- The conflict detection only checks Hot Work vs Confined Space — should also check all permit types against each other
-- No session timeout (NextAuth defaults apply)
-- The `EDIT` action on draft permits doesn't reload type-specific fields if you change permit type after initial creation
-- Atmospheric test readings in the confined space form aren't validated against safe limits on the frontend (the display shows red when unsafe, but submission isn't blocked)
 
 ---
 
