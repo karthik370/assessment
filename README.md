@@ -4,7 +4,7 @@ A production-ready Permit to Work module built as an intern assignment for Opmai
 
 PTW is safety-critical software used in industrial plants before any dangerous work begins — welding near flammable vapour, entry into confined spaces, electrical isolation, working at height. When the software gets it wrong, the failure mode is a person getting hurt with no audit trail of who authorised what.
 
-**Live Demo:** [https://ptw-cmms.vercel.app](https://ptw-cmms.vercel.app) ← replace with your Vercel URL
+**Live Demo:** [https://ptw-cmms.vercel.app](https://ptw-cmms.vercel.app)
 
 ---
 
