@@ -21,9 +21,9 @@ const PERMIT_TYPES = [
     label: "Confined Space Entry",
     desc: "Entry into tanks, vessels, sewers, or any space with restricted access",
     icon: <Users className="w-6 h-6" />,
-    color: "#94a3b8",
-    bg: "rgba(148,163,184,0.08)",
-    border: "rgba(148,163,184,0.2)",
+    color: "#fbbf24",
+    bg: "rgba(251,191,36,0.08)",
+    border: "rgba(251,191,36,0.25)",
   },
   {
     id: "WORKING_AT_HEIGHT" as PermitType,
@@ -579,8 +579,8 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
 
     // Step 4: Review
     <div key="review" className="space-y-4">
-      <div className="p-4 rounded-lg" style={{ background: "rgba(30,41,59,0.6)", border: "1px solid rgba(148,163,184,0.08)" }}>
-        <p className="text-xs font-semibold text-slate-400 uppercase mb-3">Summary</p>
+      <div className="p-4 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3">Permit Summary Review</p>
         <dl className="space-y-2 text-sm">
           <ReviewRow label="Type" value={PERMIT_TYPES.find((t) => t.id === type)?.label ?? ""} />
           <ReviewRow label="Contractor" value={contractorTeam} />
@@ -594,12 +594,12 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
       </div>
 
       {conflictWarning && (
-        <div className="flex items-start gap-2 p-4 rounded-lg" style={{ background: "rgba(148,163,184,0.06)", border: "1px solid rgba(148,163,184,0.2)" }}>
-          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#94a3b8" }} />
+        <div className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "rgba(251,191,36,0.08)", border: "1px solid rgba(251,191,36,0.3)" }}>
+          <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5 text-amber-400" />
           <div>
-            <p className="text-sm font-semibold" style={{ color: "#cbd5e1" }}>Conflict Warning</p>
-            <p className="text-xs mt-1" style={{ color: "#64748b" }}>{conflictWarning}</p>
-            <p className="text-xs mt-2" style={{ color: "#334155" }}>You can still save as draft. The area owner and safety officer should review this conflict before approving.</p>
+            <p className="text-sm font-bold text-amber-300">Simultaneous Work Conflict Detected</p>
+            <p className="text-xs mt-1 text-slate-300 leading-relaxed">{conflictWarning}</p>
+            <p className="text-[0.7rem] mt-2 text-amber-400/80 font-medium">You can still save as draft. The Area Owner and Safety Officer should review this conflict before authorizing.</p>
           </div>
         </div>
       )}
@@ -620,20 +620,22 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
               <div
                 className="step-dot cursor-pointer"
                 style={{
-                  background: i < step ? "#3b82f6" : i === step ? "#1e40af" : "rgba(30,41,59,0.8)",
-                  color: i <= step ? "white" : "#475569",
-                  border: i === step ? "2px solid #60a5fa" : "2px solid transparent",
+                  background: i < step ? "#fbbf24" : i === step ? "rgba(251,191,36,0.15)" : "rgba(255,255,255,0.03)",
+                  color: i < step ? "#000000" : i === step ? "#fbbf24" : "#64748b",
+                  border: i === step ? "2px solid #fbbf24" : i < step ? "2px solid #fbbf24" : "1px solid rgba(255,255,255,0.08)",
+                  boxShadow: i === step ? "0 0 15px rgba(251,191,36,0.35)" : "none",
+                  fontWeight: 700,
                 }}
                 onClick={() => i < step && setStep(i)}
               >
                 {i < step ? "✓" : i + 1}
               </div>
-              <span className={`text-xs font-medium hidden sm:block ${i === step ? "text-slate-200" : i < step ? "text-blue-400" : "text-slate-600"}`}>
+              <span className={`text-xs font-semibold hidden sm:block ${i === step ? "text-amber-400" : i < step ? "text-slate-300" : "text-slate-600"}`}>
                 {label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className="step-line mx-2" style={{ background: i < step ? "#3b82f6" : "rgba(148,163,184,0.1)" }} />
+              <div className="step-line mx-2" style={{ background: i < step ? "#fbbf24" : "rgba(255,255,255,0.08)" }} />
             )}
           </div>
         ))}

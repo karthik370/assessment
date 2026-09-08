@@ -1,6 +1,7 @@
 "use client";
 
 import { formatDistanceToNow } from "date-fns";
+import { History } from "lucide-react";
 
 interface AuditEntry {
   id: string;
@@ -17,26 +18,26 @@ interface AuditEntry {
 
 function getActionMeta(action: string, sameStatus?: boolean): { label: string; color: string; bg: string } {
   const map: Record<string, { label: string; color: string; bg: string }> = {
-    CREATED:             { label: "Created",              color: "#64748b", bg: "rgba(100,116,139,0.15)" },
-    SUBMITTED:           { label: "Submitted",            color: "#60a5fa", bg: "rgba(59,130,246,0.15)" },
+    CREATED:             { label: "Created",              color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
+    SUBMITTED:           { label: "Submitted",            color: "#fbbf24", bg: "rgba(251,191,36,0.15)" },
     // APPROVED but status didn't change means partial approval (one of two approvers)
     APPROVED:            sameStatus
-      ? { label: "Approval Recorded",    color: "#60a5fa", bg: "rgba(59,130,246,0.12)" }
-      : { label: "Fully Approved",       color: "#4ade80", bg: "rgba(34,197,94,0.15)" },
+      ? { label: "Approval Recorded",    color: "#60a5fa", bg: "rgba(59,130,246,0.15)" }
+      : { label: "Fully Approved",       color: "#34d399", bg: "rgba(52,211,153,0.15)" },
     REJECTED:            { label: "Rejected",             color: "#f87171", bg: "rgba(239,68,68,0.15)" },
-    ACTIVATED:           { label: "Activated",            color: "#22c55e", bg: "rgba(34,197,94,0.15)" },
+    ACTIVATED:           { label: "Activated",            color: "#a3e635", bg: "rgba(163,230,53,0.15)" },
     SUSPENDED:           { label: "Work Suspended",       color: "#fb923c", bg: "rgba(249,115,22,0.15)" },
-    RESUMED:             { label: "Work Resumed",         color: "#4ade80", bg: "rgba(34,197,94,0.15)" },
-    CLOSED:              { label: "Closed by Requester",  color: "#a78bfa", bg: "rgba(139,92,246,0.15)" },
-    VERIFIED:            { label: "Closure Verified",     color: "#22d3ee", bg: "rgba(6,182,212,0.15)" },
-    CANCELLED:           { label: "Cancelled",            color: "#9ca3af", bg: "rgba(107,114,128,0.1)" },
-    AUTO_EXPIRED:        { label: "Auto-Expired",         color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
+    RESUMED:             { label: "Work Resumed",         color: "#34d399", bg: "rgba(52,211,153,0.15)" },
+    CLOSED:              { label: "Closed by Requester",  color: "#c084fc", bg: "rgba(192,132,252,0.15)" },
+    VERIFIED:            { label: "Closure Verified",     color: "#22d3ee", bg: "rgba(34,211,238,0.15)" },
+    CANCELLED:           { label: "Cancelled",            color: "#64748b", bg: "rgba(100,116,139,0.12)" },
+    AUTO_EXPIRED:        { label: "Auto-Expired",         color: "#64748b", bg: "rgba(100,116,139,0.12)" },
     FIELD_UPDATED:       { label: "Field Updated",        color: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
-    EXTENSION_REQUESTED: { label: "Extension Requested",  color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
-    EXTENSION_APPROVED:  { label: "Extension Approved",   color: "#4ade80", bg: "rgba(34,197,94,0.1)" },
-    EXTENSION_REJECTED:  { label: "Extension Rejected",   color: "#f87171", bg: "rgba(239,68,68,0.1)" },
+    EXTENSION_REQUESTED: { label: "Extension Requested",  color: "#fbbf24", bg: "rgba(251,191,36,0.15)" },
+    EXTENSION_APPROVED:  { label: "Extension Approved",   color: "#34d399", bg: "rgba(52,211,153,0.12)" },
+    EXTENSION_REJECTED:  { label: "Extension Rejected",   color: "#f87171", bg: "rgba(239,68,68,0.12)" },
   };
-  return map[action] ?? { label: action, color: "#64748b", bg: "rgba(100,116,139,0.1)" };
+  return map[action] ?? { label: action, color: "#94a3b8", bg: "rgba(148,163,184,0.1)" };
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -48,7 +49,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 const STATUS_SHORT: Record<string, string> = {
   DRAFT: "Draft",
-  PENDING_APPROVAL: "Pending Approval",
+  PENDING_APPROVAL: "Pending",
   APPROVED: "Approved",
   ACTIVE: "Active",
   SUSPENDED: "Suspended",
@@ -62,11 +63,14 @@ const STATUS_SHORT: Record<string, string> = {
 export default function AuditLogTimeline({ logs }: { logs: AuditEntry[] }) {
   return (
     <div className="card p-5">
-      <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Audit Trail</h2>
+      <h2 className="text-xs font-bold uppercase tracking-wider text-amber-400/90 mb-5 flex items-center gap-2">
+        <History className="w-3.5 h-3.5 text-amber-400" />
+        Audit Trail & History
+      </h2>
       {logs.length === 0 ? (
-        <p className="text-sm text-slate-600">No events yet.</p>
+        <p className="text-xs text-slate-500">No events recorded yet.</p>
       ) : (
-        <div>
+        <div className="space-y-1">
           {[...logs].reverse().map((log) => {
             const sameStatus = log.fromStatus !== null && log.fromStatus === log.toStatus;
             const meta = getActionMeta(log.action, sameStatus);
@@ -75,7 +79,11 @@ export default function AuditLogTimeline({ logs }: { logs: AuditEntry[] }) {
                 {/* Dot */}
                 <div
                   className="timeline-dot flex-shrink-0"
-                  style={{ background: meta.bg, border: `1px solid ${meta.color}30` }}
+                  style={{
+                    background: meta.bg,
+                    border: `1px solid ${meta.color}40`,
+                    boxShadow: `0 0 10px ${meta.color}20`,
+                  }}
                 >
                   <span style={{ color: meta.color, fontSize: "0.55rem", fontWeight: 700 }}>
                     {meta.label.slice(0, 2).toUpperCase()}
@@ -84,28 +92,36 @@ export default function AuditLogTimeline({ logs }: { logs: AuditEntry[] }) {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="flex items-center justify-between gap-2 mb-0.5">
-                    <span className="text-xs font-semibold" style={{ color: meta.color }}>
+                  <div className="flex items-center justify-between gap-2 mb-0.5 flex-wrap">
+                    <span className="text-xs font-bold" style={{ color: meta.color }}>
                       {meta.label}
                     </span>
-                    <span className="text-xs text-slate-600 flex-shrink-0">
+                    <span className="text-[0.7rem] text-slate-500 flex-shrink-0 font-mono">
                       {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-500 mb-0.5">
-                    {log.actor.name}
-                    <span className="text-slate-700"> · {ROLE_LABELS[log.actor.role]}</span>
+                  <p className="text-xs text-slate-400 mb-1">
+                    <span className="text-slate-200 font-medium">{log.actor.name}</span>
+                    <span className="text-amber-400/70 font-mono text-[0.68rem] ml-1">
+                      [{ROLE_LABELS[log.actor.role] ?? log.actor.role}]
+                    </span>
                   </p>
 
-                  {/* Status change — only show if status actually changed */}
+                  {/* Status change badge display */}
                   {log.fromStatus && log.toStatus && !sameStatus && (
-                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                      <span className={`status-badge status-${log.fromStatus} py-0 px-1.5`} style={{ fontSize: "0.6rem" }}>
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      <span
+                        className={`status-badge status-${log.fromStatus} py-0 px-2`}
+                        style={{ fontSize: "0.62rem" }}
+                      >
                         {STATUS_SHORT[log.fromStatus] ?? log.fromStatus}
                       </span>
-                      <span className="text-slate-700 text-xs">→</span>
-                      <span className={`status-badge status-${log.toStatus} py-0 px-1.5`} style={{ fontSize: "0.6rem" }}>
+                      <span className="text-amber-400/80 text-xs font-bold">→</span>
+                      <span
+                        className={`status-badge status-${log.toStatus} py-0 px-2`}
+                        style={{ fontSize: "0.62rem" }}
+                      >
                         {STATUS_SHORT[log.toStatus] ?? log.toStatus}
                       </span>
                     </div>
@@ -113,31 +129,38 @@ export default function AuditLogTimeline({ logs }: { logs: AuditEntry[] }) {
 
                   {/* Partial approval note */}
                   {sameStatus && log.action === "APPROVED" && (
-                    <p className="text-xs mt-1" style={{ color: "#475569" }}>
-                      Awaiting remaining approver(s)
+                    <p className="text-xs mt-1 text-slate-400">
+                      Approval registered · Awaiting remaining required approval(s)
                     </p>
                   )}
 
                   {/* Field edit */}
                   {log.fieldName && (
-                    <p className="text-xs text-slate-600 mt-0.5">
-                      <span className="font-mono text-slate-500">{log.fieldName}</span>
-                      {log.oldValue && <span className="line-through text-red-900 mx-1">{log.oldValue}</span>}
-                      {log.newValue && <span className="text-green-800">{log.newValue}</span>}
+                    <p className="text-xs text-slate-400 mt-1 font-mono">
+                      <span className="text-amber-400/80">{log.fieldName}</span>
+                      {log.oldValue && (
+                        <span className="line-through text-red-400/80 mx-1">{log.oldValue}</span>
+                      )}
+                      {log.newValue && (
+                        <span className="text-emerald-400/90">{log.newValue}</span>
+                      )}
                     </p>
                   )}
 
                   {/* Comment */}
                   {log.comment && (
                     <p
-                      className="text-xs mt-1.5 italic px-2 py-1.5 rounded-lg"
-                      style={{ color: "#64748b", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}
+                      className="text-xs mt-1.5 italic px-2.5 py-1.5 rounded-lg text-slate-300"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}
                     >
                       "{log.comment}"
                     </p>
                   )}
 
-                  <p className="text-xs text-slate-700 mt-1">
+                  <p className="text-[0.65rem] text-slate-500 mt-1 font-mono">
                     {new Date(log.timestamp).toLocaleString("en-IN")}
                   </p>
                 </div>

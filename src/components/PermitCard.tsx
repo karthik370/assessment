@@ -1,16 +1,15 @@
 "use client";
 
 import { PermitStatus, PermitType } from "@prisma/client";
-import { Flame, Users, ArrowUp, Zap, MapPin, Clock, User, Calendar } from "lucide-react";
+import { Flame, Users, ArrowUp, Zap, MapPin, Calendar, User } from "lucide-react";
 import Link from "next/link";
 import CountdownTimer from "./CountdownTimer";
-import { formatDistanceToNow } from "date-fns";
 
 const TYPE_ICONS: Record<PermitType, React.ReactNode> = {
-  HOT_WORK: <Flame className="w-4 h-4" />,
-  CONFINED_SPACE: <Users className="w-4 h-4" />,
-  WORKING_AT_HEIGHT: <ArrowUp className="w-4 h-4" />,
-  ELECTRICAL_LOTO: <Zap className="w-4 h-4" />,
+  HOT_WORK: <Flame className="w-3.5 h-3.5" />,
+  CONFINED_SPACE: <Users className="w-3.5 h-3.5" />,
+  WORKING_AT_HEIGHT: <ArrowUp className="w-3.5 h-3.5" />,
+  ELECTRICAL_LOTO: <Zap className="w-3.5 h-3.5" />,
 };
 
 const TYPE_LABELS: Record<PermitType, string> = {
@@ -61,49 +60,85 @@ export default function PermitCard({ permit }: PermitCardProps) {
   const expiring = permit.status === "ACTIVE" && isExpiringSoon(permit.expiresAt);
 
   return (
-    <Link href={`/permits/${permit.id}`} id={`permit-card-${permit.id}`}>
-      <div className={`card card-hover p-5 ${expiring ? "border-amber-500/30" : ""}`} style={expiring ? { boxShadow: "0 0 0 1px rgba(245,158,11,0.3), 0 4px 24px rgba(245,158,11,0.1)" } : {}}>
+    <Link href={`/permits/${permit.id}`} id={`permit-card-${permit.id}`} className="block group">
+      <div
+        className={`card card-hover p-5 transition-all duration-200 ${
+          expiring ? "border-amber-400/40" : ""
+        }`}
+        style={
+          expiring
+            ? {
+                boxShadow:
+                  "0 0 0 1px rgba(251,191,36,0.35), 0 8px 30px rgba(251,191,36,0.15)",
+              }
+            : undefined
+        }
+      >
         {/* Header row */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className={`type-badge type-${permit.type}`}>
                 {TYPE_ICONS[permit.type]}
                 {TYPE_LABELS[permit.type]}
               </span>
               {expiring && (
-                <span className="text-xs text-amber-400 font-semibold animate-pulse">⚠ Expiring Soon</span>
+                <span className="text-[0.65rem] px-2 py-0.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-400 font-bold uppercase tracking-wider animate-pulse">
+                  ⚠ Expiring Soon
+                </span>
               )}
             </div>
-            <code className="text-xs text-slate-500 font-mono">{permit.permitNumber}</code>
+            <code className="text-xs text-amber-400/80 font-mono font-medium">
+              {permit.permitNumber}
+            </code>
           </div>
-          <span className={`status-badge status-${permit.status} ${expiring ? "expiring" : ""} flex-shrink-0`}>
+          <span
+            className={`status-badge status-${permit.status} ${
+              expiring ? "expiring" : ""
+            } flex-shrink-0`}
+          >
             {STATUS_LABELS[permit.status]}
           </span>
         </div>
 
         {/* Work description */}
-        <p className="text-sm text-slate-300 mb-3 line-clamp-2">{permit.workDescription}</p>
+        <p className="text-sm font-medium text-slate-200 mb-3.5 line-clamp-2 leading-relaxed">
+          {permit.workDescription}
+        </p>
 
-        {/* Location */}
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
-          <MapPin className="w-3 h-3 flex-shrink-0" />
-          <span className="truncate">{permit.plant.code} › {permit.area.name}{permit.equipment ? ` › ${permit.equipment.tag}` : ""}</span>
+        {/* Location & info metadata */}
+        <div className="space-y-1 mb-4">
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-amber-400/70" />
+            <span className="truncate">
+              {permit.plant.code} › {permit.area.name}
+              {permit.equipment ? ` › ${permit.equipment.tag}` : ""}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <User className="w-3.5 h-3.5 flex-shrink-0 text-amber-400/70" />
+            <span className="truncate">By {permit.requester.name}</span>
+          </div>
         </div>
 
-        {/* Requester */}
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-3">
-          <User className="w-3 h-3 flex-shrink-0" />
-          <span>{permit.requester.name}</span>
-        </div>
-
-        {/* Timing row */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs text-slate-500">
-            <Calendar className="w-3 h-3" />
-            <span>{new Date(permit.plannedStart).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}</span>
-            <span className="text-slate-700">→</span>
-            <span>{new Date(permit.plannedEnd).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}</span>
+        {/* Timing and countdown row */}
+        <div className="flex items-center justify-between pt-3 border-t border-white/[0.05] text-xs">
+          <div className="flex items-center gap-1.5 text-slate-400">
+            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+            <span>
+              {new Date(permit.plannedStart).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+              })}
+            </span>
+            <span className="text-slate-600">→</span>
+            <span>
+              {new Date(permit.plannedEnd).toLocaleTimeString("en-IN", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
           </div>
           {(permit.status === "ACTIVE" || permit.status === "APPROVED") && permit.expiresAt && (
             <CountdownTimer expiresAt={permit.expiresAt} size="sm" />

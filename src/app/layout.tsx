@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased bg-slate-950 text-slate-100 min-h-screen`}>
+      <body className={`${inter.variable} font-sans antialiased bg-black text-slate-100 min-h-screen selection:bg-amber-400/20 selection:text-amber-300`}>
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>

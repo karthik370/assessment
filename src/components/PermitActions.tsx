@@ -3,8 +3,17 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Send, CheckCircle, XCircle, Play, Pause, RotateCcw,
-  XOctagon, Lock, Shield, Clock, AlertCircle
+  Send,
+  CheckCircle2,
+  XCircle,
+  Play,
+  Pause,
+  RotateCcw,
+  XOctagon,
+  Lock,
+  Shield,
+  Clock,
+  AlertCircle,
 } from "lucide-react";
 
 interface PermitActionsProps {
@@ -36,14 +45,14 @@ const ACTION_CONFIG: Record<string, ActionConfig> = {
     confirmText: "Submit this permit for approval? Approvers will be notified.",
   },
   APPROVE: {
-    label: "Approve",
-    icon: <CheckCircle className="w-4 h-4" />,
+    label: "Approve Permit",
+    icon: <CheckCircle2 className="w-4 h-4" />,
     className: "btn-primary",
     needsComment: true,
     commentLabel: "Approval comment (optional)",
   },
   REJECT: {
-    label: "Reject",
+    label: "Reject Permit",
     icon: <XCircle className="w-4 h-4" />,
     className: "btn-danger",
     needsComment: true,
@@ -55,7 +64,7 @@ const ACTION_CONFIG: Record<string, ActionConfig> = {
     label: "Activate — Start Work",
     icon: <Play className="w-4 h-4" />,
     className: "btn-primary",
-    confirmText: "Activate this permit? This authorises work to begin.",
+    confirmText: "Activate this permit? This authorises high-hazard work to begin.",
   },
   SUSPEND: {
     label: "Suspend — Stop Work",
@@ -79,7 +88,7 @@ const ACTION_CONFIG: Record<string, ActionConfig> = {
     icon: <Lock className="w-4 h-4" />,
     className: "btn-primary",
     needsComment: true,
-    commentLabel: "Closure notes — describe what was done and area condition",
+    commentLabel: "Closure notes — describe work performed and area condition",
     commentRequired: true,
   },
   VERIFY: {
@@ -139,8 +148,8 @@ export default function PermitActions({
 
   if (availableActions.length === 0) {
     return (
-      <div className="card p-4 text-center text-xs text-slate-600">
-        No actions available for your role in this permit's current state.
+      <div className="card p-4 text-center text-xs text-slate-500">
+        No actions currently available for your role in this permit state.
       </div>
     );
   }
@@ -150,7 +159,6 @@ export default function PermitActions({
     setError("");
 
     const endpoint = ACTION_ENDPOINTS[action];
-    const config = ACTION_CONFIG[action];
 
     const body: any = {};
     if (action === "APPROVE" || action === "RESUME") body.comment = comment;
@@ -194,7 +202,10 @@ export default function PermitActions({
   return (
     <>
       <div className="card p-4">
-        <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Actions</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400/90 mb-3 flex items-center gap-2">
+          <Shield className="w-3.5 h-3.5 text-amber-400" />
+          Permit Actions
+        </h3>
         <div className="space-y-2">
           {availableActions.map((action) => {
             const ac = ACTION_CONFIG[action];
@@ -214,24 +225,47 @@ export default function PermitActions({
         </div>
       </div>
 
-      {/* Action modal */}
+      {/* Action modal — frosted dark liquid glass */}
       {activeModal && config && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}>
-          <div className="card w-full max-w-md p-6 shadow-2xl" style={{ background: "#0f1a2e" }}>
-            <h3 className="text-base font-bold text-white mb-1">{config.label}</h3>
-            <p className="text-xs text-slate-500 mb-5">Permit {permitNumber}</p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }}
+        >
+          <div
+            className="w-full max-w-md p-6 rounded-2xl relative overflow-hidden shadow-2xl"
+            style={{
+              background: "rgba(18, 18, 18, 0.9)",
+              border: "1px solid rgba(251,191,36,0.25)",
+              boxShadow:
+                "0 24px 64px rgba(0,0,0,0.9), 0 0 30px rgba(251,191,36,0.1), inset 0 1px 0 rgba(255,255,255,0.08)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+            }}
+          >
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: "linear-gradient(135deg, rgba(251,191,36,0.04) 0%, transparent 50%)",
+              }}
+            />
+
+            <h3 className="text-base font-bold text-white mb-1 relative flex items-center gap-2">
+              <span className="text-amber-400">{config.icon}</span>
+              {config.label}
+            </h3>
+            <p className="text-xs text-amber-400/70 font-mono mb-5">Permit {permitNumber}</p>
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 mb-4">
+              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/10 border border-red-500/25 mb-4 text-xs text-red-300">
                 <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-                <span className="text-sm text-red-400">{error}</span>
+                <span>{error}</span>
               </div>
             )}
 
             {activeModal === "REQUEST_EXTENSION" && (
               <div className="mb-4">
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
-                  Extension duration (hours, max 8)
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  Extension Duration (hours, max 8)
                 </label>
                 <input
                   type="number"
@@ -246,7 +280,7 @@ export default function PermitActions({
 
             {config.needsComment && (
               <div className="mb-4">
-                <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   {config.commentLabel}
                   {config.commentRequired && <span className="text-red-400 ml-1">*</span>}
                 </label>
@@ -256,12 +290,12 @@ export default function PermitActions({
                   onChange={(e) => setComment(e.target.value)}
                   rows={3}
                   className="input resize-none"
-                  placeholder={config.commentRequired ? "Required" : "Optional"}
+                  placeholder={config.commentRequired ? "Required details..." : "Optional notes..."}
                 />
               </div>
             )}
 
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-2 justify-end mt-5 pt-3 border-t border-white/[0.06]">
               <button
                 onClick={() => setActiveModal(null)}
                 className="btn-ghost"
@@ -275,7 +309,7 @@ export default function PermitActions({
                 disabled={loading || (config.commentRequired && !comment.trim())}
                 className={config.dangerous ? "btn-danger" : "btn-primary"}
               >
-                {loading ? "Processing..." : config.label}
+                {loading ? "Processing…" : config.label}
               </button>
             </div>
           </div>

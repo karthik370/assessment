@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Filter, X } from "lucide-react";
 
@@ -36,7 +36,12 @@ export default function DashboardFilters({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const hasFilters = !!(currentFilters.status || currentFilters.type || currentFilters.areaId || currentFilters.myPending);
+  const hasFilters = !!(
+    currentFilters.status ||
+    currentFilters.type ||
+    currentFilters.areaId ||
+    currentFilters.myPending
+  );
 
   function updateFilter(key: string, value: string) {
     const params = new URLSearchParams();
@@ -52,9 +57,9 @@ export default function DashboardFilters({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-1">
-      <div className="flex items-center gap-1.5 text-xs text-slate-500 mr-1">
-        <Filter className="w-3.5 h-3.5" />
+    <div className="flex flex-wrap items-center gap-2.5">
+      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400/90 mr-1">
+        <Filter className="w-3.5 h-3.5 text-amber-400" />
         <span>Filter:</span>
       </div>
 
@@ -62,12 +67,14 @@ export default function DashboardFilters({
         id="filter-status"
         value={currentFilters.status ?? ""}
         onChange={(e) => updateFilter("status", e.target.value)}
-        className="input py-1.5 text-xs w-auto pr-8"
+        className="input py-1.5 text-xs w-auto pr-8 cursor-pointer"
         style={{ width: "auto", minWidth: "140px" }}
         disabled={isPending}
       >
         {STATUS_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
         ))}
       </select>
 
@@ -75,12 +82,14 @@ export default function DashboardFilters({
         id="filter-type"
         value={currentFilters.type ?? ""}
         onChange={(e) => updateFilter("type", e.target.value)}
-        className="input py-1.5 text-xs w-auto pr-8"
+        className="input py-1.5 text-xs w-auto pr-8 cursor-pointer"
         style={{ width: "auto", minWidth: "140px" }}
         disabled={isPending}
       >
         {TYPE_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
         ))}
       </select>
 
@@ -88,23 +97,27 @@ export default function DashboardFilters({
         id="filter-area"
         value={currentFilters.areaId ?? ""}
         onChange={(e) => updateFilter("areaId", e.target.value)}
-        className="input py-1.5 text-xs w-auto pr-8"
+        className="input py-1.5 text-xs w-auto pr-8 cursor-pointer"
         style={{ width: "auto", minWidth: "160px" }}
         disabled={isPending}
       >
         <option value="">All Areas</option>
         {areas.map((a) => (
-          <option key={a.id} value={a.id}>{a.plant.code} › {a.name}</option>
+          <option key={a.id} value={a.id}>
+            {a.plant.code} › {a.name}
+          </option>
         ))}
       </select>
 
       <button
         id="filter-my-pending"
-        onClick={() => updateFilter("myPending", currentFilters.myPending === "true" ? "" : "true")}
-        className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all ${
+        onClick={() =>
+          updateFilter("myPending", currentFilters.myPending === "true" ? "" : "true")
+        }
+        className={`text-xs px-3 py-1.5 rounded-xl border font-medium transition-all cursor-pointer ${
           currentFilters.myPending === "true"
-            ? "bg-blue-500/20 border-blue-500/40 text-blue-300"
-            : "border-slate-700 text-slate-500 hover:text-slate-300"
+            ? "bg-amber-400/15 border-amber-400/40 text-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.18)]"
+            : "bg-white/[0.02] border-white/[0.08] text-slate-400 hover:text-amber-300 hover:border-amber-400/30"
         }`}
         disabled={isPending}
       >
@@ -115,7 +128,7 @@ export default function DashboardFilters({
         <button
           id="filter-clear"
           onClick={clearFilters}
-          className="flex items-center gap-1 text-xs text-slate-600 hover:text-slate-400 transition-colors ml-1"
+          className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-400 transition-colors ml-1 cursor-pointer"
           disabled={isPending}
         >
           <X className="w-3.5 h-3.5" />
@@ -123,7 +136,11 @@ export default function DashboardFilters({
         </button>
       )}
 
-      {isPending && <span className="text-xs text-slate-600 animate-pulse">Loading...</span>}
+      {isPending && (
+        <span className="text-xs text-amber-400 animate-pulse flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Updating…
+        </span>
+      )}
     </div>
   );
 }

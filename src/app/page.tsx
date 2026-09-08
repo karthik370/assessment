@@ -4,10 +4,9 @@ import { prisma } from "@/lib/db";
 import AppShell from "@/components/AppShell";
 import PermitCard from "@/components/PermitCard";
 import DashboardFilters from "@/components/DashboardFilters";
-import { Activity, Clock, AlertTriangle, FileCheck, ChevronRight } from "lucide-react";
+import { Activity, Clock, AlertTriangle, FileCheck, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 
-// This is a Server Component — we fetch directly from DB here
 export default async function DashboardPage({
   searchParams,
 }: {
@@ -71,79 +70,99 @@ export default async function DashboardPage({
 
   return (
     <AppShell>
-      <div className="p-6">
+      <div className="p-6 max-w-7xl mx-auto">
         {/* Page header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div>
-            <h1 className="text-xl font-bold text-white">Permit Dashboard</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
-              {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}
+            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2.5">
+              <span>Permit Dashboard</span>
+              <span className="text-xs px-2 py-0.5 rounded-full border border-amber-400/30 bg-amber-400/10 text-amber-400 font-medium">
+                Live
+              </span>
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 font-medium">
+              {new Date().toLocaleDateString("en-IN", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
             </p>
           </div>
           <Link href="/permits/new" id="new-permit-btn" className="btn-primary">
-            <span className="text-lg leading-none">+</span>
+            <span className="text-base leading-none">+</span>
             New Permit
           </Link>
         </div>
 
         {/* Summary stat cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 mb-6">
           <StatCard
             label="Active"
             value={activeCount}
-            color="text-green-400"
-            bg="rgba(34,197,94,0.08)"
-            border="rgba(34,197,94,0.2)"
-            icon={<Activity className="w-4 h-4" />}
+            color="text-emerald-400"
+            bg="rgba(16,185,129,0.06)"
+            border="rgba(16,185,129,0.2)"
+            icon={<Activity className="w-4 h-4 text-emerald-400" />}
           />
           <StatCard
             label="Expiring <2h"
             value={expiringSoonCount}
-            color={expiringSoonCount > 0 ? "text-amber-400" : "text-slate-500"}
-            bg={expiringSoonCount > 0 ? "rgba(245,158,11,0.08)" : "rgba(30,41,59,0.5)"}
-            border={expiringSoonCount > 0 ? "rgba(245,158,11,0.3)" : "rgba(148,163,184,0.08)"}
-            icon={<Clock className="w-4 h-4" />}
+            color={expiringSoonCount > 0 ? "text-amber-400" : "text-slate-400"}
+            bg={expiringSoonCount > 0 ? "rgba(251,191,36,0.1)" : "rgba(255,255,255,0.02)"}
+            border={expiringSoonCount > 0 ? "rgba(251,191,36,0.35)" : "rgba(255,255,255,0.06)"}
+            icon={<Clock className="w-4 h-4 text-amber-400" />}
             urgent={expiringSoonCount > 0}
           />
           <StatCard
             label="Pending Approval"
             value={pendingCount}
-            color="text-blue-400"
-            bg="rgba(59,130,246,0.08)"
-            border="rgba(59,130,246,0.2)"
-            icon={<FileCheck className="w-4 h-4" />}
+            color={pendingCount > 0 ? "text-amber-300" : "text-slate-400"}
+            bg={pendingCount > 0 ? "rgba(251,191,36,0.08)" : "rgba(255,255,255,0.02)"}
+            border={pendingCount > 0 ? "rgba(251,191,36,0.25)" : "rgba(255,255,255,0.06)"}
+            icon={<FileCheck className="w-4 h-4 text-amber-300" />}
           />
           <StatCard
             label="Suspended"
             value={suspendedCount}
-            color={suspendedCount > 0 ? "text-orange-400" : "text-slate-500"}
-            bg={suspendedCount > 0 ? "rgba(249,115,22,0.08)" : "rgba(30,41,59,0.5)"}
-            border={suspendedCount > 0 ? "rgba(249,115,22,0.3)" : "rgba(148,163,184,0.08)"}
-            icon={<AlertTriangle className="w-4 h-4" />}
+            color={suspendedCount > 0 ? "text-red-400" : "text-slate-400"}
+            bg={suspendedCount > 0 ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.02)"}
+            border={suspendedCount > 0 ? "rgba(239,68,68,0.25)" : "rgba(255,255,255,0.06)"}
+            icon={<AlertTriangle className="w-4 h-4 text-red-400" />}
             urgent={suspendedCount > 0}
           />
           <StatCard
             label="My Approvals"
             value={myPendingCount}
-            color={myPendingCount > 0 ? "text-blue-300" : "text-slate-500"}
-            bg={myPendingCount > 0 ? "rgba(59,130,246,0.1)" : "rgba(30,41,59,0.5)"}
-            border={myPendingCount > 0 ? "rgba(59,130,246,0.3)" : "rgba(148,163,184,0.08)"}
-            icon={<FileCheck className="w-4 h-4" />}
+            color={myPendingCount > 0 ? "text-amber-400" : "text-slate-400"}
+            bg={myPendingCount > 0 ? "rgba(251,191,36,0.12)" : "rgba(255,255,255,0.02)"}
+            border={myPendingCount > 0 ? "rgba(251,191,36,0.35)" : "rgba(255,255,255,0.06)"}
+            icon={<CheckCircle2 className="w-4 h-4 text-amber-400" />}
             linkHref="/?myPending=true"
           />
         </div>
 
         {/* Filters */}
-        <DashboardFilters areas={areas} currentFilters={searchParams} />
+        <div className="card p-3 mb-5">
+          <DashboardFilters areas={areas} currentFilters={searchParams} />
+        </div>
 
         {/* Permit grid */}
         {permits.length === 0 ? (
-          <div className="text-center py-20 text-slate-600">
-            <FileCheck className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No permits match your filters.</p>
+          <div className="card text-center py-20 px-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center mx-auto mb-3">
+              <FileCheck className="w-6 h-6 text-amber-400/60" />
+            </div>
+            <p className="text-sm font-semibold text-slate-300">No permits found</p>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              No permits match your active filters, or no permits have been created yet.
+            </p>
+            <Link href="/permits/new" className="btn-primary mt-4 inline-flex">
+              Create First Permit
+            </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {permits.map((permit) => (
               <PermitCard key={permit.id} permit={permit as any} />
             ))}
@@ -175,19 +194,31 @@ function StatCard({
 }) {
   const inner = (
     <div
-      className="p-4 rounded-xl flex items-center gap-3 transition-all"
-      style={{ background: bg, border: `1px solid ${border}`, animation: urgent ? "pulse-amber 2s infinite" : "none" }}
+      className="p-4 rounded-2xl flex items-center gap-3.5 transition-all duration-200 relative overflow-hidden group card-hover cursor-pointer"
+      style={{
+        background: bg,
+        border: `1px solid ${border}`,
+        boxShadow: urgent ? "0 0 20px rgba(251,191,36,0.15)" : "0 4px 16px rgba(0,0,0,0.5)",
+      }}
     >
-      <div className={`${color} opacity-80`}>{icon}</div>
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        {icon}
+      </div>
       <div>
-        <p className={`text-xl font-bold ${color}`}>{value}</p>
-        <p className="text-xs text-slate-500">{label}</p>
+        <p className={`text-2xl font-bold font-mono leading-none ${color}`}>{value}</p>
+        <p className="text-xs text-slate-400 font-medium mt-1">{label}</p>
       </div>
     </div>
   );
 
   if (linkHref) {
-    return <Link href={linkHref}>{inner}</Link>;
+    return <Link href={linkHref} className="block">{inner}</Link>;
   }
   return inner;
 }

@@ -10,22 +10,37 @@ import CountdownTimer from "@/components/CountdownTimer";
 import ExtensionPanel from "@/components/ExtensionPanel";
 import { getAvailableActions } from "@/lib/permissions";
 import {
-  MapPin, Calendar, User, Users, FileText, Shield,
-  ArrowLeft, QrCode, Flame, ArrowUp, Zap, Clock
+  MapPin,
+  Calendar,
+  User,
+  Users,
+  ArrowLeft,
+  QrCode,
+  Clock,
+  Shield,
+  FileCheck,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: "Draft", PENDING_APPROVAL: "Pending Approval", APPROVED: "Approved",
-  ACTIVE: "Active", SUSPENDED: "Suspended", EXPIRED: "Expired",
-  CLOSED: "Closed", CLOSED_VERIFIED: "Closed & Verified",
-  REJECTED: "Rejected", CANCELLED: "Cancelled",
+  DRAFT: "Draft",
+  PENDING_APPROVAL: "Pending Approval",
+  APPROVED: "Approved",
+  ACTIVE: "Active",
+  SUSPENDED: "Suspended",
+  EXPIRED: "Expired",
+  CLOSED: "Closed",
+  CLOSED_VERIFIED: "Closed & Verified",
+  REJECTED: "Rejected",
+  CANCELLED: "Cancelled",
 };
 
 const TYPE_LABELS: Record<string, string> = {
-  HOT_WORK: "Hot Work", CONFINED_SPACE: "Confined Space Entry",
-  WORKING_AT_HEIGHT: "Working at Height", ELECTRICAL_LOTO: "Electrical / LOTO",
+  HOT_WORK: "Hot Work",
+  CONFINED_SPACE: "Confined Space Entry",
+  WORKING_AT_HEIGHT: "Working at Height",
+  ELECTRICAL_LOTO: "Electrical / LOTO",
 };
 
 export default async function PermitDetailPage({
@@ -88,153 +103,227 @@ export default async function PermitDetailPage({
 
   return (
     <AppShell>
-      <div className="p-6 max-w-5xl mx-auto">
+      <div className="p-6 max-w-6xl mx-auto">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 mb-5">
-          <Link href="/" className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors">
+        <div className="flex items-center gap-2 mb-5 text-xs">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-slate-400 hover:text-amber-400 transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" />
             Dashboard
           </Link>
-          <span className="text-slate-700">/</span>
-          <code className="text-sm text-slate-400 font-mono">{permit.permitNumber}</code>
+          <span className="text-slate-600">/</span>
+          <code className="text-amber-400/90 font-mono font-medium">{permit.permitNumber}</code>
         </div>
 
-        {/* Header */}
+        {/* Header banner */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-3 mb-2 flex-wrap">
-              <span className={`type-badge type-${permit.type} text-sm py-1 px-3`}>
+              <span className={`type-badge type-${permit.type} text-xs py-1 px-3`}>
                 {TYPE_LABELS[permit.type]}
               </span>
-              <span className={`status-badge status-${permit.status} ${isExpiringSoon ? "expiring" : ""}`}>
+              <span
+                className={`status-badge status-${permit.status} ${
+                  isExpiringSoon ? "expiring" : ""
+                }`}
+              >
                 {STATUS_LABELS[permit.status]}
               </span>
               {permit.status === "ACTIVE" && permit.expiresAt && (
                 <CountdownTimer expiresAt={permit.expiresAt} size="md" />
               )}
             </div>
-            <h1 className="text-xl font-bold text-white">{permit.workDescription}</h1>
-            <p className="text-sm text-slate-500 mt-1">
-              <code className="font-mono">{permit.permitNumber}</code> · Raised {new Date(permit.createdAt).toLocaleString("en-IN")}
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              {permit.workDescription}
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 font-medium">
+              <code className="font-mono text-amber-400/90 font-semibold">{permit.permitNumber}</code>{" "}
+              · Raised {new Date(permit.createdAt).toLocaleString("en-IN")}
             </p>
           </div>
 
-          {/* QR Code — safety walk-around can scan this */}
-          <div className="flex-shrink-0">
+          {/* QR Code */}
+          <div className="flex-shrink-0 card p-2 flex flex-col items-center border-amber-400/20">
             <a
               href={`/api/permits/${permit.id}/qr`}
               target="_blank"
               title="Download QR code for this permit"
-              className="flex items-center gap-2 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              className="flex items-center gap-1.5 text-[0.7rem] text-slate-400 hover:text-amber-400 transition-colors mb-1.5 font-medium"
             >
-              <QrCode className="w-4 h-4" />
-              QR Code
+              <QrCode className="w-3.5 h-3.5 text-amber-400" />
+              Inspection QR
             </a>
             <img
               src={`/api/permits/${permit.id}/qr`}
               alt={`QR code for permit ${permit.permitNumber}`}
               width={80}
               height={80}
-              className="rounded mt-1 border border-slate-700/50"
+              className="rounded-lg border border-white/[0.08]"
             />
           </div>
         </div>
 
-        {/* Urgent banner for suspended */}
+        {/* Urgent banner for suspended state */}
         {permit.status === "SUSPENDED" && (
-          <div className="flex items-center gap-3 p-4 rounded-xl mb-5" style={{ background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.3)" }}>
-            <span className="text-2xl">⚠️</span>
+          <div
+            className="flex items-center gap-3 p-4 rounded-2xl mb-5"
+            style={{
+              background: "rgba(249,115,22,0.1)",
+              border: "1px solid rgba(249,115,22,0.35)",
+              boxShadow: "0 0 20px rgba(249,115,22,0.1)",
+            }}
+          >
+            <AlertTriangle className="w-6 h-6 text-orange-400 flex-shrink-0" />
             <div>
               <p className="text-sm font-bold text-orange-300">Work Suspended</p>
-              <p className="text-xs text-orange-400/80">All work must stop immediately. See audit log for suspension reason.</p>
+              <p className="text-xs text-orange-400/80">
+                All work operations must stop immediately. Refer to the audit log below for the suspension reason.
+              </p>
             </div>
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Main content */}
+          {/* Main content column */}
           <div className="lg:col-span-2 space-y-5">
-            {/* Core info */}
+            {/* Core info card */}
             <div className="card p-5">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Permit Details</h2>
+              <h2 className="text-xs font-bold uppercase tracking-wider text-amber-400/90 mb-4 flex items-center gap-2">
+                <FileCheck className="w-3.5 h-3.5 text-amber-400" />
+                Permit Details
+              </h2>
               <dl className="space-y-3">
-                <DetailRow icon={<User className="w-4 h-4" />} label="Requester" value={`${permit.requester.name} (${permit.requester.email})`} />
-                <DetailRow icon={<Users className="w-4 h-4" />} label="Contractor / Team" value={permit.contractorTeam} />
-                <DetailRow icon={<MapPin className="w-4 h-4" />} label="Location" value={`${permit.plant.name} › ${permit.area.name}${permit.equipment ? ` › ${permit.equipment.tag} — ${permit.equipment.name}` : ""}`} />
-                <DetailRow icon={<MapPin className="w-4 h-4 opacity-0" />} label="Exact Location" value={permit.locationDetail} />
                 <DetailRow
-                  icon={<Calendar className="w-4 h-4" />}
-                  label="Planned Window"
-                  value={`${new Date(permit.plannedStart).toLocaleString("en-IN")} → ${new Date(permit.plannedEnd).toLocaleString("en-IN")}`}
+                  icon={<User className="w-4 h-4 text-amber-400/70" />}
+                  label="Requester"
+                  value={`${permit.requester.name} (${permit.requester.email})`}
+                />
+                <DetailRow
+                  icon={<Users className="w-4 h-4 text-amber-400/70" />}
+                  label="Contractor / Working Team"
+                  value={permit.contractorTeam}
+                />
+                <DetailRow
+                  icon={<MapPin className="w-4 h-4 text-amber-400/70" />}
+                  label="Designated Location"
+                  value={`${permit.plant.name} › ${permit.area.name}${
+                    permit.equipment ? ` › ${permit.equipment.tag} — ${permit.equipment.name}` : ""
+                  }`}
+                />
+                <DetailRow
+                  icon={<MapPin className="w-4 h-4 opacity-0" />}
+                  label="Exact Location Details"
+                  value={permit.locationDetail}
+                />
+                <DetailRow
+                  icon={<Calendar className="w-4 h-4 text-amber-400/70" />}
+                  label="Planned Work Window"
+                  value={`${new Date(permit.plannedStart).toLocaleString("en-IN")} → ${new Date(
+                    permit.plannedEnd
+                  ).toLocaleString("en-IN")}`}
                 />
                 {permit.expiresAt && (
-                  <DetailRow icon={<Clock className="w-4 h-4" />} label="Expires At" value={new Date(permit.expiresAt).toLocaleString("en-IN")} />
+                  <DetailRow
+                    icon={<Clock className="w-4 h-4 text-amber-400" />}
+                    label="Permit Expiration"
+                    value={new Date(permit.expiresAt).toLocaleString("en-IN")}
+                  />
                 )}
               </dl>
             </div>
 
-            {/* Hazards & PPE */}
+            {/* Hazards & Controls card */}
             <div className="card p-5">
-              <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-4">Hazards & Controls</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-amber-400/90 mb-4 flex items-center gap-2">
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                Hazards & Safety Controls
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <p className="text-xs font-semibold text-slate-500 mb-2">Hazards Identified</p>
+                  <p className="text-xs font-semibold text-slate-300 mb-2">Hazards Identified</p>
                   {permit.hazardsIdentified.length > 0 ? (
-                    <ul className="space-y-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {permit.hazardsIdentified.map((h, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                          <span className="text-red-400 mt-0.5">•</span>
+                        <span
+                          key={i}
+                          className="text-xs px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 flex items-center gap-1.5"
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
                           {h}
-                        </li>
+                        </span>
                       ))}
-                    </ul>
-                  ) : <p className="text-sm text-slate-600">None listed</p>}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500">None declared</p>
+                  )}
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-500 mb-2">PPE Required</p>
+                  <p className="text-xs font-semibold text-slate-300 mb-2">PPE Required</p>
                   {permit.ppeRequired.length > 0 ? (
-                    <ul className="space-y-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {permit.ppeRequired.map((p, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-slate-300">
-                          <span className="text-green-400 mt-0.5">✓</span>
+                        <span
+                          key={i}
+                          className="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center gap-1.5"
+                        >
+                          <span className="text-emerald-400">✓</span>
                           {p}
-                        </li>
+                        </span>
                       ))}
-                    </ul>
-                  ) : <p className="text-sm text-slate-600">None listed</p>}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500">None declared</p>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Type-specific fields */}
+            {/* Type-specific satellite fields */}
             <TypeSpecificFields permit={permit as any} />
 
             {/* Closure notes */}
             {permit.closureNotes && (
-              <div className="card p-5">
-                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wide mb-3">Closure Notes</h2>
-                <p className="text-sm text-slate-300">{permit.closureNotes}</p>
+              <div className="card p-5 border-purple-400/20">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-purple-400 mb-3 flex items-center gap-2">
+                  <span>Work Completion Notes</span>
+                </h2>
+                <p className="text-sm text-slate-200 leading-relaxed">{permit.closureNotes}</p>
                 {permit.closedAt && (
-                  <p className="text-xs text-slate-600 mt-2">Closed: {new Date(permit.closedAt).toLocaleString("en-IN")}</p>
+                  <p className="text-[0.7rem] text-slate-500 mt-2 font-mono">
+                    Closed on: {new Date(permit.closedAt).toLocaleString("en-IN")}
+                  </p>
                 )}
               </div>
             )}
 
+            {/* Verification notes */}
             {permit.verifiedNotes && (
-              <div className="card p-5" style={{ borderColor: "rgba(6,182,212,0.2)" }}>
-                <h2 className="text-sm font-semibold text-cyan-500 uppercase tracking-wide mb-3">✓ Verified by Safety Officer</h2>
-                <p className="text-sm text-slate-300">{permit.verifiedNotes}</p>
+              <div
+                className="card p-5"
+                style={{
+                  border: "1px solid rgba(34,211,238,0.25)",
+                  background: "rgba(34,211,238,0.03)",
+                }}
+              >
+                <h2 className="text-xs font-bold uppercase tracking-wider text-cyan-400 mb-3 flex items-center gap-2">
+                  <span>✓ Verified by Safety Officer</span>
+                </h2>
+                <p className="text-sm text-slate-200 leading-relaxed">{permit.verifiedNotes}</p>
                 {permit.verifiedAt && (
-                  <p className="text-xs text-slate-600 mt-2">Verified: {new Date(permit.verifiedAt).toLocaleString("en-IN")}</p>
+                  <p className="text-[0.7rem] text-slate-500 mt-2 font-mono">
+                    Verified on: {new Date(permit.verifiedAt).toLocaleString("en-IN")}
+                  </p>
                 )}
               </div>
             )}
 
-            {/* Audit log */}
+            {/* Audit log timeline */}
             <AuditLogTimeline logs={permit.auditLogs as any} />
           </div>
 
-          {/* Right column — approvals + actions */}
+          {/* Right column — approvals & interactive actions */}
           <div className="space-y-4">
             {/* Approval trail */}
             <ApprovalTrail approvals={permit.approvals as any} />
@@ -276,10 +365,10 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="text-slate-600 mt-0.5 flex-shrink-0">{icon}</span>
+      <span className="mt-0.5 flex-shrink-0">{icon}</span>
       <div className="min-w-0">
-        <dt className="text-xs text-slate-500 mb-0.5">{label}</dt>
-        <dd className="text-sm text-slate-200">{value}</dd>
+        <dt className="text-[0.7rem] text-slate-400 font-medium mb-0.5">{label}</dt>
+        <dd className="text-sm text-slate-200 font-medium">{value}</dd>
       </div>
     </div>
   );
