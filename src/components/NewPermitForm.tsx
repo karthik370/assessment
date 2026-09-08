@@ -21,9 +21,9 @@ const PERMIT_TYPES = [
     label: "Confined Space Entry",
     desc: "Entry into tanks, vessels, sewers, or any space with restricted access",
     icon: <Users className="w-6 h-6" />,
-    color: "#fde047",
-    bg: "rgba(234,179,8,0.08)",
-    border: "rgba(234,179,8,0.2)",
+    color: "#94a3b8",
+    bg: "rgba(148,163,184,0.08)",
+    border: "rgba(148,163,184,0.2)",
   },
   {
     id: "WORKING_AT_HEIGHT" as PermitType,
@@ -89,8 +89,20 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
   const [areaId, setAreaId] = useState("");
   const [equipmentId, setEquipmentId] = useState("");
   const [locationDetail, setLocationDetail] = useState("");
-  const [plannedStart, setPlannedStart] = useState("");
-  const [plannedEnd, setPlannedEnd] = useState("");
+  // Default: tomorrow 08:00 → 17:00 local time
+  const [plannedStart, setPlannedStart] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(8, 0, 0, 0);
+    // datetime-local format: YYYY-MM-DDTHH:mm
+    return d.toISOString().slice(0, 16);
+  });
+  const [plannedEnd, setPlannedEnd] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(17, 0, 0, 0);
+    return d.toISOString().slice(0, 16);
+  });
   const [hazards, setHazards] = useState<string[]>([]);
   const [ppe, setPpe] = useState<string[]>([]);
 
@@ -145,6 +157,18 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
   }
 
   function buildPayload() {
+    // Guard — these should never be empty given defaults, but be safe
+    const startDate = plannedStart ? new Date(plannedStart) : null;
+    const endDate = plannedEnd ? new Date(plannedEnd) : null;
+    if (!startDate || isNaN(startDate.getTime())) {
+      throw new Error("Please select a valid planned start date and time.");
+    }
+    if (!endDate || isNaN(endDate.getTime())) {
+      throw new Error("Please select a valid planned end date and time.");
+    }
+    if (endDate <= startDate) {
+      throw new Error("Planned end must be after planned start.");
+    }
     const base: any = {
       type,
       contractorTeam,
@@ -153,8 +177,8 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
       areaId,
       equipmentId: equipmentId || undefined,
       locationDetail,
-      plannedStart: new Date(plannedStart).toISOString(),
-      plannedEnd: new Date(plannedEnd).toISOString(),
+      plannedStart: startDate.toISOString(),
+      plannedEnd: endDate.toISOString(),
       hazardsIdentified: hazards,
       ppeRequired: ppe,
     };
@@ -214,7 +238,15 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
     setSubmitting(true);
     setError("");
 
-    const payload = buildPayload();
+    let payload;
+    try {
+      payload = buildPayload();
+    } catch (err: any) {
+      setError(err.message);
+      setSubmitting(false);
+      return;
+    }
+
     const res = await fetch("/api/permits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -252,8 +284,8 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
             onClick={() => { setType(pt.id); setStep(1); }}
             className="w-full text-left p-4 rounded-xl border transition-all flex items-center gap-4"
             style={{
-              background: type === pt.id ? pt.bg : "rgba(15,23,42,0.6)",
-              borderColor: type === pt.id ? pt.color : "rgba(148,163,184,0.08)",
+              background: type === pt.id ? pt.bg : "rgba(255,255,255,0.02)",
+              borderColor: type === pt.id ? pt.color : "rgba(255,255,255,0.05)",
               boxShadow: type === pt.id ? `0 0 0 1px ${pt.color}40` : "none",
             }}
           >
@@ -562,12 +594,12 @@ export default function NewPermitForm({ plants }: { plants: Plant[] }) {
       </div>
 
       {conflictWarning && (
-        <div className="flex items-start gap-2 p-4 rounded-lg" style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)" }}>
-          <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 p-4 rounded-lg" style={{ background: "rgba(148,163,184,0.06)", border: "1px solid rgba(148,163,184,0.2)" }}>
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#94a3b8" }} />
           <div>
-            <p className="text-sm font-semibold text-amber-300">Conflict Warning</p>
-            <p className="text-xs text-amber-400/80 mt-1">{conflictWarning}</p>
-            <p className="text-xs text-amber-600 mt-2">You can still save as draft. The area owner and safety officer should review this conflict before approving.</p>
+            <p className="text-sm font-semibold" style={{ color: "#cbd5e1" }}>Conflict Warning</p>
+            <p className="text-xs mt-1" style={{ color: "#64748b" }}>{conflictWarning}</p>
+            <p className="text-xs mt-2" style={{ color: "#334155" }}>You can still save as draft. The area owner and safety officer should review this conflict before approving.</p>
           </div>
         </div>
       )}
